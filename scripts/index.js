@@ -8,43 +8,19 @@
 
 // @todo: Вывести карточки на страницу
 
-// const cardTemplate = document.querySelector('#card-template').content;
-// const placesList = document.querySelector('.places__list');
-
-// function viewCards() {
-//   let cardElement = [];
-
-//   for (let i = 0; i < initialCards.length; i++) {
-//     cardElement = cardTemplate.querySelector('.card').cloneNode(true);
-
-//     cardElement.querySelector('.card__image').src = initialCards[i].link;
-//     cardElement.querySelector('.card__title').textContent = initialCards[i].name;
-    
-//     cardElement.querySelector('.card__delete-button').addEventListener('click', removeCard);
-
-//     placesList.append(cardElement);
-//   }
-// }
-
-// function removeCard(evt) {
-//   let target = evt.target.closest('.card');
-//   target.remove();
-// }
-
-// viewCards();
-
 const cardTemplate = document.querySelector('#card-template').content;
-const cardContainer = document.querySelector('.places__list');
+const cardsContainer = document.querySelector('.places__list');
 
-function createCard(cardData, ondelete) {
+function createCard(cardData, onDelete) {
   const card = cardTemplate.querySelector('.card').cloneNode(true);
-  
-  card.querySelector('.card__image').src = cardData.link;
-  card.querySelector('.card__image').alt = cardData.name;
+  const cardImage = card.querySelector('.card__image');
+  const deleteButton = card.querySelector('.card__delete-button');
+
+  cardImage.src = cardData.link;
+  cardImage.alt = cardData.name;
   card.querySelector('.card__title').textContent = cardData.name;
   
-  const deleteButton = card.querySelector('.card__delete-button');
-  deleteButton.addEventListener("click", () => ondelete(card));
+  deleteButton.addEventListener("click", () => onDelete(card));
 
   return card;
 }
@@ -53,13 +29,13 @@ function deleteCard(card) {
   card.remove()
 } 
 
-function viewCard(card) {
-  cardContainer.append(card);
+function renderCard(card) {
+  cardsContainer.append(card);
 }
 
 function renderInitialCard() {
   initialCards.forEach(card => {
-    viewCard(createCard(card, deleteCard));
+    renderCard(createCard(card, deleteCard));
   })
 }
 
