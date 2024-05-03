@@ -6,7 +6,7 @@
 
 // @todo: Функция удаления карточки
 
-// @todo: Вывести карточки на страницу
+// @todo: Вывести карточки на страниц
 
 import "../pages/index.css";
 import { initialCards }  from './cards.js';
