@@ -35,6 +35,8 @@ const caption = popupImage.querySelector('.popup__caption');
 function renderNameProfile() {
   nameInput.value = nameProfile.textContent;
   jobInput.value = jobProfile.textContent;
+
+  openModal(formEditCard)
 }
 
 function renderCard(card) {
@@ -80,8 +82,7 @@ function addCard(evt) {
 formEditCard.addEventListener('submit', handleFormSubmit); 
 formAddCard.addEventListener('submit', addCard);
 
-profileEditButton.addEventListener('click', () => { openModal(formEditCard) });
+profileEditButton.addEventListener('click', renderNameProfile);
 profileAddButton.addEventListener('click', () => { openModal(formAddCard) });
 
 renderInitialCard();
-renderNameProfile();

@@ -1,14 +1,11 @@
-function openModal(popup, value, value2) {
+function openModal(popup) {
   popup.classList.add('popup_is-animated');
   setTimeout(() => popup.classList.add('popup_is-opened'), 1)
   setEventListeners(popup);
 }
 
 function setEventListeners(popup) {
-  const popupClose = popup.querySelector('.popup__close');
-  popupClose.addEventListener('click', () => {
-    closeModal(popup);
-  })
+  popup.querySelector('.popup__close').addEventListener('click', closeByCross);
   popup.addEventListener('click', closeByOverlay);
   document.addEventListener('keydown', closeByEscape);
 }
@@ -26,9 +23,15 @@ function closeByOverlay(evt) {
   }
 }
 
+function closeByCross() {
+  const openedPopup = document.querySelector('.popup_is-opened');
+  closeModal(openedPopup);
+}
+
 function closeModal(popup) {
   popup.classList.remove('popup_is-opened');
   setTimeout(() => popup.classList.remove('popup_is-animated'), 600);
+  popup.querySelector('.popup__close').removeEventListener('click', closeByCross);
   popup.removeEventListener('click', closeByOverlay);
   document.removeEventListener('keydown', closeByEscape);
 }
