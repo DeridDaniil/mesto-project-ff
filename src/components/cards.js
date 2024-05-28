@@ -1,54 +1,36 @@
-const initialCards = [
-    {
-      name: "Архыз",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/arkhyz.jpg",
-    },
-    {
-      name: "Челябинская область",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/chelyabinsk-oblast.jpg",
-    },
-    {
-      name: "Иваново",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/ivanovo.jpg",
-    },
-    {
-      name: "Камчатка",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/kamchatka.jpg",
-    },
-    {
-      name: "Холмогорский район",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/kholmogorsky-rayon.jpg",
-    },
-    {
-      name: "Байкал",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/baikal.jpg",
-    }
-];
 const cardTemplate = document.querySelector('#card-template').content;
 
-function createCard(cardData, onDelete, openModal) {
+function createCard(cardData, onDelete, openModal, idOwner, likeCard, viewLikes) {
   const card = cardTemplate.querySelector('.card').cloneNode(true);
   const cardImage = card.querySelector('.card__image');
   const deleteButton = card.querySelector('.card__delete-button');
   const likeButton = card.querySelector('.card__like-button');
+  const cardLikeCounter = card.querySelector('.card__like-counter');
 
+  idOwner(cardData.owner._id, deleteButton);
   cardImage.src = cardData.link;
   cardImage.alt = cardData.name;
+
+  const likes = cardData.likes;
+  likes.forEach(like => {
+    viewLikes(like._id, cardData.likes.length, cardLikeCounter, likeButton);
+  })
+
   card.querySelector('.card__title').textContent = cardData.name;
 
-  likeButton.addEventListener('click', evt => {
-    evt.target.classList.toggle('card__like-button_is-active');
+  likeButton.addEventListener('click', () => {
+    likeCard(cardData._id, likeButton, cardLikeCounter);
   });
 
   cardImage.addEventListener('click', openModal);
   
-  deleteButton.addEventListener("click", () => onDelete(card));
+  deleteButton.addEventListener("click", () => onDelete(cardData._id, card));
 
   return card;
 }
 
 function deleteCard(card) {
-  card.remove()
+  card.remove();
 }
 
-export { initialCards, createCard, deleteCard };
+export { createCard, deleteCard };

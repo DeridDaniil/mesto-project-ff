@@ -1,0 +1,12 @@
+.popup__error-hidden {
+  font-size: 12px;
+  color: #f00;
+  line-height: normal;
+  display: inline-block;
+  margin-bottom: 10px;
+  opacity: 0;
+}
+
+.popup__error-hidden:last-of-type {
+  margin-bottom: 0;
+}
