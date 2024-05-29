@@ -11,7 +11,7 @@
 import "../pages/index.css";
 import { createCard, deleteCard } from '../components/cards';
 import { openModal, closeModal } from '../components/modal';
-import { setEventListeners, hideInputError, validationConfig } from '../components/validation';
+import { setEventListeners, hideInputError } from '../components/validation';
 import { 
   getProfile as APIgetProfile, 
   getCardList as APIgetCardList, 
@@ -47,6 +47,15 @@ const caption = popupImage.querySelector('.popup__caption');
 
 const formUpdateAvatar = document.querySelector('.popup_type_update-avatar');
 const avatarLink = formUpdateAvatar.querySelector('.popup__input_type_url');
+
+const validationConfig = {
+  formSelector: '.popup__form',
+  inputSelector: '.popup__input',
+  submitButtonSelector: '.popup__button',
+  inactiveButtonClass: 'popup__button_disabled',
+  inputErrorClass: 'popup__input_type_error',
+  errorClass: 'popup__error_visible'
+};
 
 function getProfile(name, about, avatar) {
   APIgetProfile()
@@ -214,23 +223,23 @@ function updateAvatar(evt) {
   closeModal(evt.currentTarget);
 }
 
-function enableValidation() {
-  const formList = Array.from(document.querySelectorAll(validationConfig.formSelector));
+function enableValidation(config) {
+  const formList = Array.from(document.querySelectorAll(config.formSelector));
   formList.forEach(formElement => {
     formElement.addEventListener('submit', evt => {
       evt.preventDefault();
     });
-    setEventListeners(formElement);
+    setEventListeners(config, formElement);
   })
 }
 
-function clearValidation(formElement, validationConfig) {
-  const inputList = Array.from(formElement.querySelectorAll(validationConfig.inputSelector));
-  const buttonElement = formElement.querySelector(validationConfig.submitButtonSelector);
+function clearValidation(formElement, config) {
+  const inputList = Array.from(formElement.querySelectorAll(config.inputSelector));
+  const buttonElement = formElement.querySelector(config.submitButtonSelector);
   inputList.forEach(inputElement => {
-    hideInputError(formElement, inputElement);
+    hideInputError(config, formElement, inputElement);
   });
-  buttonElement.classList.add(validationConfig.inactiveButtonClass);
+  buttonElement.classList.add(config.inactiveButtonClass);
 }
 
 formEditCard.addEventListener('submit', handleFormSubmit); 
@@ -243,4 +252,4 @@ profileUpdateAvatarButton.addEventListener('click', renderUpdateAvatarProfile);
 
 renderInitialCards();
 getProfile(nameProfile, jobProfile, avatarProfile);
-enableValidation();
+enableValidation(validationConfig);
