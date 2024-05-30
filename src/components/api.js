@@ -32,6 +32,7 @@ function editProfile(name, about) {
       about: about.value
     })
   })
+  .then(res => checkAnswer(res));
 };
 
 function postCard(name, link) {
@@ -42,12 +43,6 @@ function postCard(name, link) {
       name: name.value,
       link: link.value 
     })
-  })
-}
-
-function getIdOwner() {
-  return fetch(`${config.baseUrl}/users/me`, {
-    headers: config.headers
   })
   .then(res => checkAnswer(res));
 }
@@ -84,6 +79,7 @@ function updateAvatar(avatar) {
       avatar: avatar.value
     })
   })
+  .then(res => checkAnswer(res));
 }
 
-export { getProfile, getCardList, editProfile, postCard, getIdOwner, deleteCard, likeCard, unlikeCard, updateAvatar };
+export { getProfile, getCardList, editProfile, postCard, deleteCard, likeCard, unlikeCard, updateAvatar };

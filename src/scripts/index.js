@@ -11,13 +11,12 @@
 import "../pages/index.css";
 import { createCard, deleteCard } from '../components/cards';
 import { openModal, closeModal } from '../components/modal';
-import { setEventListeners, hideInputError } from '../components/validation';
+import { enableValidation, clearValidation} from '../components/validation';
 import { 
   getProfile as APIgetProfile, 
   getCardList as APIgetCardList, 
   editProfile as APIeditProfile, 
-  postCard as APIpostCard,  
-  getIdOwner as APIgetIdOwner,
+  postCard as APIpostCard,
   deleteCard as APIdeleteCard, 
   likeCard as APIlikeCard, 
   unlikeCard as APIunlikeCard, 
@@ -31,10 +30,10 @@ const profileUpdateAvatarButton = document.querySelector('.profile__image');
 
 const formEditCard = document.querySelector('.popup_type_edit');
 const nameInput = formEditCard.querySelector('.popup__input_type_name');
-const jobInput = formEditCard.querySelector('.popup__input_type_description');
+const aboutInput = formEditCard.querySelector('.popup__input_type_description');
 
 const nameProfile = document.querySelector('.profile__title'); 
-const jobProfile = document.querySelector('.profile__description');
+const aboutProfile = document.querySelector('.profile__description');
 const avatarProfile = document.querySelector('.profile__image');
 
 const formAddCard = document.querySelector('.popup_type_new-card');
@@ -58,15 +57,9 @@ const validationConfig = {
 };
 
 function getProfile(name, about, avatar) {
-  APIgetProfile()
-    .then(res => {
-      name.textContent = res.name;
-      about.textContent = res.about;
-      avatar.style.backgroundImage = `url(${res.avatar})`;
-    })
-    .catch(err => {
-      console.log(err);
-    });
+  nameProfile.textContent = name;
+  aboutProfile.textContent = about;
+  avatarProfile.style.backgroundImage = `url(${avatar})`;
 };
 
 function likeCardAPI(idCard, button, counter) {
@@ -103,21 +96,12 @@ function renderCard(card) {
 }
 
 function deleteCardAPI(cardId, card) {
-  deleteCard(card);
-  APIdeleteCard(cardId);
+  APIdeleteCard(cardId)
+    .then(deleteCard(card))
 }
 
-function renderInitialCards() {
-  APIgetCardList()
-    .then(cardList => {
-      cardList.forEach(card => {
-        renderCard(createCard(card, deleteCardAPI, openImageModal, getIdOwner, likeCardAPI, viewLikes));
-      })
-    })
-}; 
-
 function getIdOwner(idCardOwner, button) {
-  APIgetIdOwner()
+  APIgetProfile()
     .then( ({_id}) => {
       if (_id === idCardOwner) {
         button.style.display = 'block';
@@ -129,7 +113,7 @@ function getIdOwner(idCardOwner, button) {
 }
 
 function viewLikes(idLike, length, counter, button) {
-  APIgetIdOwner()
+  APIgetProfile()
       .then(({_id}) => {
         if (length !== 0) {
           if (_id === idLike) {
@@ -158,7 +142,7 @@ function renderFormAddCard() {
 
 function renderNameProfile() {
   nameInput.value = nameProfile.textContent;
-  jobInput.value = jobProfile.textContent;
+  aboutInput.value = aboutProfile.textContent;
   clearValidation(formEditCard, validationConfig);
   openModal(formEditCard);
 }
@@ -171,17 +155,20 @@ function renderUpdateAvatarProfile() {
 
 function handleFormSubmit(evt) {
   evt.preventDefault();
-  APIeditProfile(nameInput, jobInput)
+  const loading = evt.target.querySelector(validationConfig.submitButtonSelector);
+  loading.textContent = 'Сохранение...';
+  APIeditProfile(nameInput, aboutInput)
     .then(res => {
-      if (res.ok) {
-        return getProfile(nameProfile, jobProfile, avatarProfile);
-      } 
-      return Promise.reject(`Ошибка: ${res.status}`);
+      nameProfile.textContent = res.name;
+      aboutProfile.textContent = res.about;
     })
+    .then(closeModal(evt.currentTarget))
     .catch(err => {
       console.log(err);
+    })
+    .finally(() => {
+      loading.textContent = 'Сохранить';
     });
-  closeModal(evt.currentTarget);
 }
 
 function openImageModal(evt) {
@@ -194,52 +181,37 @@ function openImageModal(evt) {
 
 function addCard(evt) {
   evt.preventDefault();
+  const loading = evt.target.querySelector(validationConfig.submitButtonSelector);
+  loading.textContent = 'Сохранение...';
   APIpostCard(cardName, cardLink)
-    .then(res => {
-      if (res.ok) {
-        return renderInitialCards();
-      } 
-      return Promise.reject(`Ошибка: ${res.status}`);
+    .then(card => {
+      renderCard(createCard(card, deleteCardAPI, openImageModal, getIdOwner, likeCardAPI, viewLikes));
     })
     .catch(err => {
       console.log(err);
-    });
-  evt.target.reset();
-  closeModal(evt.currentTarget);
+    })
+    .finally(() => {
+      loading.textContent = 'Сохранить';
+    })
+    evt.target.reset();
+    closeModal(evt.currentTarget);
 }
 
 function updateAvatar(evt) {
   evt.preventDefault();
+  const loading = evt.target.querySelector(validationConfig.submitButtonSelector);
+  loading.textContent = 'Сохранение...';
   APIupdateAvatar(avatarLink)
     .then(res => {
-      if (res.ok) {
-        return getProfile(nameProfile, jobProfile, avatarProfile);
-      } 
-      return Promise.reject(`Ошибка: ${res.status}`);
+      avatarProfile.style.backgroundImage = `url(${res.avatar})`;
     })
     .catch(err => {
       console.log(err);
-    });
+    })
+    .finally(() => {
+      loading.textContent = 'Сохранить';
+    })
   closeModal(evt.currentTarget);
-}
-
-function enableValidation(config) {
-  const formList = Array.from(document.querySelectorAll(config.formSelector));
-  formList.forEach(formElement => {
-    formElement.addEventListener('submit', evt => {
-      evt.preventDefault();
-    });
-    setEventListeners(config, formElement);
-  })
-}
-
-function clearValidation(formElement, config) {
-  const inputList = Array.from(formElement.querySelectorAll(config.inputSelector));
-  const buttonElement = formElement.querySelector(config.submitButtonSelector);
-  inputList.forEach(inputElement => {
-    hideInputError(config, formElement, inputElement);
-  });
-  buttonElement.classList.add(config.inactiveButtonClass);
 }
 
 formEditCard.addEventListener('submit', handleFormSubmit); 
@@ -250,6 +222,15 @@ profileEditButton.addEventListener('click', renderNameProfile);
 profileAddButton.addEventListener('click', renderFormAddCard);
 profileUpdateAvatarButton.addEventListener('click', renderUpdateAvatarProfile);
 
-renderInitialCards();
-getProfile(nameProfile, jobProfile, avatarProfile);
 enableValidation(validationConfig);
+
+Promise.all([APIgetProfile(), APIgetCardList()])
+  .then(([{name, about, avatar}, cardList]) => {
+    getProfile(name, about, avatar);
+    cardList.forEach(card => {
+      renderCard(createCard(card, deleteCardAPI, openImageModal, getIdOwner, likeCardAPI, viewLikes));
+    })
+  })
+  .catch(err => {
+    console.log(err);
+  })

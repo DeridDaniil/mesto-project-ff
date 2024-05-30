@@ -54,4 +54,23 @@ function toggleButtonState(config, inputList, buttonElement) {
   }
 };
 
-export { setEventListeners, hideInputError };
+function enableValidation(config) {
+  const formList = Array.from(document.querySelectorAll(config.formSelector));
+  formList.forEach(formElement => {
+    formElement.addEventListener('submit', evt => {
+      evt.preventDefault();
+    });
+    setEventListeners(config, formElement);
+  })
+}
+
+function clearValidation(formElement, config) {
+  const inputList = Array.from(formElement.querySelectorAll(config.inputSelector));
+  const buttonElement = formElement.querySelector(config.submitButtonSelector);
+  inputList.forEach(inputElement => {
+    hideInputError(config, formElement, inputElement);
+  });
+  buttonElement.classList.add(config.inactiveButtonClass);
+}
+
+export { enableValidation, clearValidation };
