@@ -23,6 +23,7 @@ import {
   updateAvatar as APIupdateAvatar } from '../components/api';
 
 const cardsContainer = document.querySelector('.places__list');
+let userId;
 
 const profileEditButton = document.querySelector('.profile__edit-button');
 const profileAddButton = document.querySelector('.profile__add-button');
@@ -97,40 +98,33 @@ function renderCard(card) {
 
 function deleteCardAPI(cardId, card) {
   APIdeleteCard(cardId)
-    .then(deleteCard(card))
-}
-
-function getIdOwner(idCardOwner, button) {
-  APIgetProfile()
-    .then( ({_id}) => {
-      if (_id === idCardOwner) {
-        button.style.display = 'block';
-      }
+    .then(() => {
+      deleteCard(card)
     })
     .catch(err => {
       console.log(err);
     })
 }
 
-function viewLikes(idLike, length, counter, button) {
-  APIgetProfile()
-      .then(({_id}) => {
-        if (length !== 0) {
-          if (_id === idLike) {
-            counter.textContent = length;
-            counter.classList.add('card__like-counter_active');
-            button.classList.add('card__like-button_is-active');
-          } else {
-            counter.classList.add('card__like-counter_active');
-            counter.textContent = length;
-          }
-        } else {
-          counter.textContent = '';
-        }
-      })
-      .catch(err => {
-        console.log(err);
-      })
+function viewDeleteButton(idCardOwner, button, userId) {
+    if (userId === idCardOwner) {
+      button.style.display = 'block';
+    }
+}
+
+function viewLikes(idLike, length, counter, button, userId) {
+  if (length !== 0) {
+    if (userId === idLike) {
+      counter.textContent = length;
+      counter.classList.add('card__like-counter_active');
+      button.classList.add('card__like-button_is-active');
+    } else {
+      counter.classList.add('card__like-counter_active');
+      counter.textContent = length;
+    }
+  } else {
+    counter.textContent = '';
+  }
 }
 
 function renderFormAddCard() {
@@ -153,24 +147,6 @@ function renderUpdateAvatarProfile() {
   openModal(formUpdateAvatar);
 }
 
-function handleFormSubmit(evt) {
-  evt.preventDefault();
-  const loading = evt.target.querySelector(validationConfig.submitButtonSelector);
-  loading.textContent = 'Сохранение...';
-  APIeditProfile(nameInput, aboutInput)
-    .then(res => {
-      nameProfile.textContent = res.name;
-      aboutProfile.textContent = res.about;
-    })
-    .then(closeModal(evt.currentTarget))
-    .catch(err => {
-      console.log(err);
-    })
-    .finally(() => {
-      loading.textContent = 'Сохранить';
-    });
-}
-
 function openImageModal(evt) {
   image.src = evt.target.src;
   image.alt = evt.target.alt;
@@ -179,13 +155,35 @@ function openImageModal(evt) {
   openModal(popupImage);
 }
 
+function handleFormSubmit(evt) {
+  evt.preventDefault();
+  const openedPopup = document.querySelector('.popup_is-opened');
+  const loading = evt.target.querySelector(validationConfig.submitButtonSelector);
+  loading.textContent = 'Сохранение...';
+  APIeditProfile(nameInput, aboutInput)
+    .then(res => {
+      nameProfile.textContent = res.name;
+      aboutProfile.textContent = res.about;
+      closeModal(openedPopup)
+    })
+    .catch(err => {
+      console.log(err);
+    })
+    .finally(() => {
+      loading.textContent = 'Сохранить';
+    });
+}
+
 function addCard(evt) {
   evt.preventDefault();
+  const openedPopup = document.querySelector('.popup_is-opened');
   const loading = evt.target.querySelector(validationConfig.submitButtonSelector);
   loading.textContent = 'Сохранение...';
   APIpostCard(cardName, cardLink)
     .then(card => {
-      renderCard(createCard(card, deleteCardAPI, openImageModal, getIdOwner, likeCardAPI, viewLikes));
+      cardsContainer.prepend(createCard(card, deleteCardAPI, openImageModal, viewDeleteButton, likeCardAPI, viewLikes, userId));
+      evt.target.reset();
+      closeModal(openedPopup);
     })
     .catch(err => {
       console.log(err);
@@ -193,17 +191,17 @@ function addCard(evt) {
     .finally(() => {
       loading.textContent = 'Сохранить';
     })
-    evt.target.reset();
-    closeModal(evt.currentTarget);
 }
 
 function updateAvatar(evt) {
   evt.preventDefault();
+  const openedPopup = document.querySelector('.popup_is-opened');
   const loading = evt.target.querySelector(validationConfig.submitButtonSelector);
   loading.textContent = 'Сохранение...';
   APIupdateAvatar(avatarLink)
     .then(res => {
       avatarProfile.style.backgroundImage = `url(${res.avatar})`;
+      closeModal(openedPopup);
     })
     .catch(err => {
       console.log(err);
@@ -211,7 +209,6 @@ function updateAvatar(evt) {
     .finally(() => {
       loading.textContent = 'Сохранить';
     })
-  closeModal(evt.currentTarget);
 }
 
 formEditCard.addEventListener('submit', handleFormSubmit); 
@@ -225,10 +222,11 @@ profileUpdateAvatarButton.addEventListener('click', renderUpdateAvatarProfile);
 enableValidation(validationConfig);
 
 Promise.all([APIgetProfile(), APIgetCardList()])
-  .then(([{name, about, avatar}, cardList]) => {
+  .then(([{name, about, avatar, _id}, cardList]) => {
     getProfile(name, about, avatar);
+    userId = _id;
     cardList.forEach(card => {
-      renderCard(createCard(card, deleteCardAPI, openImageModal, getIdOwner, likeCardAPI, viewLikes));
+      renderCard(createCard(card, deleteCardAPI, openImageModal, viewDeleteButton, likeCardAPI, viewLikes, userId));
     })
   })
   .catch(err => {
